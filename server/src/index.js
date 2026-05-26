@@ -2,8 +2,18 @@ import { app } from './app.js';
 import { connectDatabase } from './config/db.js';
 import { env } from './config/env.js';
 
-await connectDatabase();
+const startServer = async () => {
+  try {
+    await connectDatabase();
 
-app.listen(env.port, () => {
-  console.log(`[server] FocusFlow API running on http://localhost:${env.port}`);
-});
+    app.listen(env.port || 5000, () => {
+      console.log(`FocusFlow API running on port ${env.port || 5000}`);
+    });
+
+  } catch (error) {
+    console.error('Server startup failed:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
