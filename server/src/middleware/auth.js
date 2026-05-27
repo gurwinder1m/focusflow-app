@@ -1,12 +1,12 @@
 import jwt from 'jsonwebtoken';
-import { User } from '../models/user.model.js';
+import { User } from '../models/user.js';
 import { env } from '../config/env.js';
 
 export async function requireAuth(req, res, next) {
   try {
     let token = null;
 
-    // 🔥 Bearer token read
+    // 🔥 Read Bearer token
     if (
       req.headers.authorization &&
       req.headers.authorization.startsWith('Bearer ')
@@ -14,17 +14,20 @@ export async function requireAuth(req, res, next) {
       token = req.headers.authorization.split(' ')[1];
     }
 
+    // 🔥 No token
     if (!token) {
       return res.status(401).json({
         message: 'Unauthorized'
       });
     }
 
+    // 🔥 Verify token
     const decoded = jwt.verify(
       token,
       env.jwtSecret
     );
 
+    // 🔥 Find user
     const user = await User.findById(decoded.id);
 
     if (!user) {
