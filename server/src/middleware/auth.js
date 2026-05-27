@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js'; // Fixed: Capital 'U'
+import { User } from '../models/User.js'; // Fixed: Added curly braces for Named Export
 import { env } from '../config/env.js';
 
 export async function requireAuth(req, res, next) {
@@ -31,7 +31,7 @@ export async function requireAuth(req, res, next) {
         next();
 
     } catch (error) {
-        console.error("JWT Auth Error:", error.message); // Isse terminal me exact error dikhega
+        console.error("JWT Auth Error:", error.message);
         return res.status(401).json({ message: 'Invalid token' });
     }
 }
