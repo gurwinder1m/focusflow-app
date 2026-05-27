@@ -21,12 +21,11 @@ export default function Habits() {
 
   async function fetchHabits() {
     try {
-      const res = await api.get('/api/habits');
+      const res = await api.get('/habits');
 
       setHabits(res.data.habits || []);
     } catch (error) {
       console.error(error);
-      toast.error('Failed to load habits');
     }
   }
 
@@ -36,7 +35,7 @@ export default function Habits() {
     if (!title.trim()) return;
 
     try {
-      const res = await api.post('/api/habits', {
+      const res = await api.post('/habits', {
         title,
         frequency: 'daily',
         xpReward: 20,
@@ -50,13 +49,15 @@ export default function Habits() {
       toast.success('Habit created');
     } catch (error) {
       console.error(error);
-      toast.error('Failed to create habit');
+      toast.error(
+        error?.response?.data?.message || 'Failed to create habit'
+      );
     }
   }
 
   async function completeHabit(id) {
     try {
-      const res = await api.post(`/api/habits/${id}/complete`);
+      const res = await api.post(`/habits/${id}/complete`);
 
       setHabits((prev) =>
         prev.map((habit) =>
@@ -76,7 +77,7 @@ export default function Habits() {
 
   async function deleteHabit(id) {
     try {
-      await api.delete(`/api/habits/${id}`);
+      await api.delete(`/habits/${id}`);
 
       setHabits((prev) =>
         prev.filter((habit) => habit._id !== id)
@@ -142,8 +143,7 @@ export default function Habits() {
                   <div
                     className="mb-4 grid h-12 w-12 place-items-center rounded-2xl text-white"
                     style={{
-                      backgroundColor:
-                        habit.color || '#8B5CF6'
+                      backgroundColor: habit.color || '#8B5CF6'
                     }}
                   >
                     <Sparkles size={20} />
@@ -180,6 +180,7 @@ export default function Habits() {
 
                 <div className="flex gap-2">
                   <Button
+                    type="button"
                     onClick={() => completeHabit(habit._id)}
                     className="flex-1"
                   >
@@ -188,6 +189,7 @@ export default function Habits() {
                   </Button>
 
                   <Button
+                    type="button"
                     onClick={() => deleteHabit(habit._id)}
                     className="bg-red-500 hover:bg-red-600"
                   >
