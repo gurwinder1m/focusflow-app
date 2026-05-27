@@ -10,7 +10,6 @@ export async function completeHabit(req, res) {
     throw new ApiError(404, 'Habit not found.');
   }
 
-  // Prevent duplicate same-day completion
   const alreadyDone = habit.completions.some(
     (entry) => entry.date === date
   );
@@ -19,7 +18,6 @@ export async function completeHabit(req, res) {
     throw new ApiError(409, 'Already completed for today.');
   }
 
-  // Check streak continuity
   const yesterday = dayjs(date)
     .subtract(1, 'day')
     .format('YYYY-MM-DD');
@@ -31,7 +29,6 @@ export async function completeHabit(req, res) {
 
   const continues = lastDate === yesterday;
 
-  // Update streak
   habit.streak.current = continues
     ? habit.streak.current + 1
     : 1;
@@ -41,17 +38,12 @@ export async function completeHabit(req, res) {
     habit.streak.current
   );
 
-  // XP logic
   const streakBonus =
-    habit.streak.current > 0 &&
-    habit.streak.current % 7 === 0
-      ? 30
-      : 0;
+    habit.streak.current % 7 === 0 ? 30 : 0;
 
   const xpEarned =
     (habit.xpReward || 10) + streakBonus;
 
-  // Save completion
   habit.completions.push({
     date,
     xpEarned,
@@ -62,7 +54,6 @@ export async function completeHabit(req, res) {
 
   await habit.save();
 
-  // Update user gamification
   req.user.gamification.currentStreak = Math.max(
     req.user.gamification.currentStreak,
     habit.streak.current
@@ -75,16 +66,10 @@ export async function completeHabit(req, res) {
 
   await req.user.save();
 
-  // Analytics update
   await AnalyticsSnapshot.findOneAndUpdate(
+    { user: req.user._id, date },
     {
-      user: req.user._id,
-      date
-    },
-    {
-      $inc: {
-        habitsCompleted: 1
-      },
+      $inc: { habitsCompleted: 1 },
       $set: {
         productivityScore: Math.min(
           100,
@@ -92,9 +77,7 @@ export async function completeHabit(req, res) {
         )
       }
     },
-    {
-      upsert: true
-    }
+    { upsert: true }
   );
 
   const reward = await awardXp(
