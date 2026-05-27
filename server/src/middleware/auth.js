@@ -1,26 +1,46 @@
-import { ApiError } from '../utils/ApiError.js';
-import { verifyToken } from '../utils/jwt.js';
-import { User } from '../models/User.js';
+import jwt from 'jsonwebtoken';
+import { User } from '../models/user.model.js';
+import { env } from '../config/env.js';
 
-export async function requireAuth(req, _res, next) {
+export async function requireAuth(req, res, next) {
   try {
-    const header = req.headers.authorization || '';
-    const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+    let token = null;
 
-    if (!token) {
-      throw new ApiError(401, 'Authentication required.');
+    // 🔥 Bearer token read
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith('Bearer ')
+    ) {
+      token = req.headers.authorization.split(' ')[1];
     }
 
-    const payload = verifyToken(token);
-    const user = await User.findById(payload.sub).select('-passwordHash');
+    if (!token) {
+      return res.status(401).json({
+        message: 'Unauthorized'
+      });
+    }
+
+    const decoded = jwt.verify(
+      token,
+      env.jwtSecret
+    );
+
+    const user = await User.findById(decoded.id);
 
     if (!user) {
-      throw new ApiError(401, 'User no longer exists.');
+      return res.status(401).json({
+        message: 'User not found'
+      });
     }
 
     req.user = user;
+
     next();
   } catch (error) {
-    next(error instanceof ApiError ? error : new ApiError(401, 'Invalid or expired token.'));
+    console.error(error);
+
+    return res.status(401).json({
+      message: 'Invalid token'
+    });
   }
 }
