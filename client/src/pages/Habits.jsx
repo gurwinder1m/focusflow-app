@@ -1,6 +1,6 @@
 import { Check, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../lib/axios.js';
 import toast from 'react-hot-toast';
 
 import Button from '../components/ui/Button.jsx';
@@ -21,10 +21,12 @@ export default function Habits() {
 
   async function fetchHabits() {
     try {
-      const res = await axios.get('/api/habits');
+      const res = await api.get('/habits');
+
       setHabits(res.data.habits || []);
     } catch (error) {
       console.error(error);
+      toast.error('Failed to load habits');
     }
   }
 
@@ -34,7 +36,7 @@ export default function Habits() {
     if (!title.trim()) return;
 
     try {
-      const res = await axios.post('/api/habits', {
+      const res = await api.post('/habits', {
         title,
         frequency: 'daily',
         xpReward: 20,
@@ -54,7 +56,7 @@ export default function Habits() {
 
   async function completeHabit(id) {
     try {
-      const res = await axios.post(`/api/habits/${id}/complete`);
+      const res = await api.post(`/habits/${id}/complete`);
 
       setHabits((prev) =>
         prev.map((habit) =>
@@ -74,7 +76,7 @@ export default function Habits() {
 
   async function deleteHabit(id) {
     try {
-      await axios.delete(`/api/habits/${id}`);
+      await api.delete(`/habits/${id}`);
 
       setHabits((prev) =>
         prev.filter((habit) => habit._id !== id)
