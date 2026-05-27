@@ -21,7 +21,7 @@ export default function Habits() {
 
   async function fetchHabits() {
     try {
-      const res = await api.get('/habits');
+      const res = await api.get('/api/habits');
 
       setHabits(res.data.habits || []);
     } catch (error) {
@@ -36,7 +36,7 @@ export default function Habits() {
     if (!title.trim()) return;
 
     try {
-      const res = await api.post('/habits', {
+      const res = await api.post('/api/habits', {
         title,
         frequency: 'daily',
         xpReward: 20,
@@ -56,7 +56,7 @@ export default function Habits() {
 
   async function completeHabit(id) {
     try {
-      const res = await api.post(`/habits/${id}/complete`);
+      const res = await api.post(`/api/habits/${id}/complete`);
 
       setHabits((prev) =>
         prev.map((habit) =>
@@ -76,7 +76,7 @@ export default function Habits() {
 
   async function deleteHabit(id) {
     try {
-      await api.delete(`/habits/${id}`);
+      await api.delete(`/api/habits/${id}`);
 
       setHabits((prev) =>
         prev.filter((habit) => habit._id !== id)
