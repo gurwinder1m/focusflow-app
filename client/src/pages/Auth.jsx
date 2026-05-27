@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button.jsx';
 import Input from '../components/ui/Input.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
-import { useHabits } from '../context/HabitsContext.jsx';
 
 export default function Auth() {
   const [mode, setMode] = useState('login');
@@ -16,7 +15,6 @@ export default function Auth() {
   });
 
   const { login, signup, enterDemo, loading } = useAuth();
-  const { fetchHabits, setHabits } = useHabits();
   const navigate = useNavigate();
 
   async function submit(event) {
@@ -28,9 +26,7 @@ export default function Auth() {
       await signup(form);
     }
 
-    setHabits([]);        // 🔥 clear old demo habits
-    await fetchHabits();  // 🔥 load fresh user habits
-
+    
     navigate('/');
   }
 
