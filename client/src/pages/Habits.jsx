@@ -23,9 +23,14 @@ export default function Habits() {
     try {
       const res = await api.get('/habits');
 
-      setHabits(res.data.habits || []);
+      setHabits(res.data?.habits || []);
     } catch (error) {
       console.error(error);
+
+      if (error.response?.status === 401) {
+        toast.error('Please login again');
+        localStorage.removeItem('focusflow-token');
+      }
     }
   }
 
@@ -49,6 +54,7 @@ export default function Habits() {
       toast.success('Habit created');
     } catch (error) {
       console.error(error);
+
       toast.error(
         error?.response?.data?.message || 'Failed to create habit'
       );
@@ -118,89 +124,98 @@ export default function Habits() {
         </form>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {habits.map((habit, index) => {
-          const monthly = Math.min(
-            100,
-            Math.round(((habit.completions?.length || 0) / 30) * 100)
-          );
+      {habits.length === 0 ? (
+        <Card>
+          <p className="text-center text-slate-400">
+            No habits yet. Create your first habit 🚀
+          </p>
+        </Card>
+      ) : (
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {habits.map((habit, index) => {
+            const monthly = Math.min(
+              100,
+              Math.round(((habit.completions?.length || 0) / 30) * 100)
+            );
 
-          return (
-            <Card
-              key={habit._id}
-              delay={index * 0.04}
-              className="relative overflow-hidden"
-            >
-              <div
-                className="absolute right-0 top-0 h-32 w-32 rounded-full blur-3xl"
-                style={{
-                  backgroundColor: `${habit.color || '#8B5CF6'}33`
-                }}
-              />
+            return (
+              <Card
+                key={habit._id}
+                delay={index * 0.04}
+                className="relative overflow-hidden"
+              >
+                <div
+                  className="absolute right-0 top-0 h-32 w-32 rounded-full blur-3xl"
+                  style={{
+                    backgroundColor: `${habit.color || '#8B5CF6'}33`
+                  }}
+                />
 
-              <div className="relative flex items-start justify-between gap-4">
-                <div>
-                  <div
-                    className="mb-4 grid h-12 w-12 place-items-center rounded-2xl text-white"
-                    style={{
-                      backgroundColor: habit.color || '#8B5CF6'
-                    }}
-                  >
-                    <Sparkles size={20} />
+                <div className="relative flex items-start justify-between gap-4">
+                  <div>
+                    <div
+                      className="mb-4 grid h-12 w-12 place-items-center rounded-2xl text-white"
+                      style={{
+                        backgroundColor:
+                          habit.color || '#8B5CF6'
+                      }}
+                    >
+                      <Sparkles size={20} />
+                    </div>
+
+                    <p className="text-xl font-extrabold tracking-tight">
+                      {habit.title}
+                    </p>
+
+                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                      {habit.frequency} · +{habit.xpReward} XP
+                    </p>
                   </div>
 
-                  <p className="text-xl font-extrabold tracking-tight">
-                    {habit.title}
-                  </p>
-
-                  <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                    {habit.frequency} · +{habit.xpReward} XP
-                  </p>
+                  <ProgressRing
+                    value={monthly}
+                    size={92}
+                    stroke={8}
+                    label={`${habit.streak?.current || 0}d`}
+                    sublabel="streak"
+                  />
                 </div>
 
-                <ProgressRing
-                  value={monthly}
-                  size={92}
-                  stroke={8}
-                  label={`${habit.streak?.current || 0}d`}
-                  sublabel="streak"
-                />
-              </div>
+                <div className="relative mt-6 rounded-2xl border border-slate-900/10 bg-white/60 p-3 dark:border-white/10 dark:bg-white/[0.05]">
+                  <div className="mb-4">
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                      Best streak
+                    </p>
 
-              <div className="relative mt-6 rounded-2xl border border-slate-900/10 bg-white/60 p-3 dark:border-white/10 dark:bg-white/[0.05]">
-                <div className="mb-4">
-                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                    Best streak
-                  </p>
+                    <p className="text-lg font-extrabold">
+                      {habit.streak?.longest || 0} days
+                    </p>
+                  </div>
 
-                  <p className="text-lg font-extrabold">
-                    {habit.streak?.longest || 0} days
-                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      onClick={() => completeHabit(habit._id)}
+                      className="flex-1"
+                    >
+                      <Check size={17} />
+                      Done
+                    </Button>
+
+                    <Button
+                      type="button"
+                      onClick={() => deleteHabit(habit._id)}
+                      className="bg-red-500 hover:bg-red-600"
+                    >
+                      <Trash2 size={17} />
+                    </Button>
+                  </div>
                 </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    onClick={() => completeHabit(habit._id)}
-                    className="flex-1"
-                  >
-                    <Check size={17} />
-                    Done
-                  </Button>
-
-                  <Button
-                    type="button"
-                    onClick={() => deleteHabit(habit._id)}
-                    className="bg-red-500 hover:bg-red-600"
-                  >
-                    <Trash2 size={17} />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </PageTransition>
   );
 }
