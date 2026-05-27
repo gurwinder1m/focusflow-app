@@ -1,17 +1,28 @@
 export async function completeHabit(req, res) {
   const date = req.body.date || dayjs().format('YYYY-MM-DD');
 
-  const habit = await Habit.findOne({ _id: req.params.id, user: req.user._id });
-  if (!habit) throw new ApiError(404, 'Habit not found.');
+  const habit = await Habit.findOne({
+    _id: req.params.id,
+    user: req.user._id
+  });
 
-  // 🔴 FIX 1: prevent duplicate same-day completion
-  const alreadyDone = habit.completions.some((entry) => entry.date === date);
+  if (!habit) {
+    throw new ApiError(404, 'Habit not found.');
+  }
+
+  // Prevent duplicate same-day completion
+  const alreadyDone = habit.completions.some(
+    (entry) => entry.date === date
+  );
+
   if (alreadyDone) {
     throw new ApiError(409, 'Already completed for today.');
   }
 
-  // 🔥 check previous day for streak continuity
-  const yesterday = dayjs(date).subtract(1, 'day').format('YYYY-MM-DD');
+  // Check streak continuity
+  const yesterday = dayjs(date)
+    .subtract(1, 'day')
+    .format('YYYY-MM-DD');
 
   const lastDate =
     habit.completions.length > 0
@@ -20,15 +31,27 @@ export async function completeHabit(req, res) {
 
   const continues = lastDate === yesterday;
 
-  // 🔥 streak update
-  habit.streak.current = continues ? habit.streak.current + 1 : 1;
-  habit.streak.longest = Math.max(habit.streak.longest, habit.streak.current);
+  // Update streak
+  habit.streak.current = continues
+    ? habit.streak.current + 1
+    : 1;
 
-  // 🔥 xp logic
-  const streakBonus = habit.streak.current > 0 && habit.streak.current % 7 === 0 ? 30 : 0;
-  const xpEarned = (habit.xpReward || 10) + streakBonus;
+  habit.streak.longest = Math.max(
+    habit.streak.longest,
+    habit.streak.current
+  );
 
-  // 🔥 save completion
+  // XP logic
+  const streakBonus =
+    habit.streak.current > 0 &&
+    habit.streak.current % 7 === 0
+      ? 30
+      : 0;
+
+  const xpEarned =
+    (habit.xpReward || 10) + streakBonus;
+
+  // Save completion
   habit.completions.push({
     date,
     xpEarned,
@@ -39,7 +62,7 @@ export async function completeHabit(req, res) {
 
   await habit.save();
 
-  // 🔥 user gamification update
+  // Update user gamification
   req.user.gamification.currentStreak = Math.max(
     req.user.gamification.currentStreak,
     habit.streak.current
@@ -52,19 +75,33 @@ export async function completeHabit(req, res) {
 
   await req.user.save();
 
-  // 🔥 analytics update
+  // Analytics update
   await AnalyticsSnapshot.findOneAndUpdate(
-    { user: req.user._id, date },
     {
-      $inc: { habitsCompleted: 1 },
+      user: req.user._id,
+      date
+    },
+    {
+      $inc: {
+        habitsCompleted: 1
+      },
       $set: {
-        productivityScore: Math.min(100, 20 + habit.streak.current * 4)
+        productivityScore: Math.min(
+          100,
+          20 + habit.streak.current * 4
+        )
       }
     },
-    { upsert: true }
+    {
+      upsert: true
+    }
   );
 
-  const reward = await awardXp(req.user, xpEarned, 'habit_completed');
+  const reward = await awardXp(
+    req.user,
+    xpEarned,
+    'habit_completed'
+  );
 
   return res.json({
     success: true,
@@ -72,13 +109,39 @@ export async function completeHabit(req, res) {
     reward
   });
 }
+
+export async function archiveHabit(req, res) {
+  const habit = await Habit.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      user: req.user._id
+    },
+    {
+      archived: true
+    },
+    {
+      new: true
+    }
+  );
+
+  if (!habit) {
+    throw new ApiError(404, 'Habit not found.');
+  }
+
+  res.json({ habit });
+}
+
 export async function deleteHabit(req, res) {
   const habit = await Habit.findOneAndDelete({
     _id: req.params.id,
     user: req.user._id
   });
 
-  if (!habit) throw new ApiError(404, 'Habit not found');
+  if (!habit) {
+    throw new ApiError(404, 'Habit not found');
+  }
 
-  res.json({ success: true });
+  res.json({
+    success: true
+  });
 }
