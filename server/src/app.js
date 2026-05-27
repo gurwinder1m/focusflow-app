@@ -77,6 +77,8 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', service: 'focusflow-api', timestamp: new Date().toISOString() });
 });
 
+// ... baaki saare upar ke routes same rahenge
+
 app.use('/api/auth', authRouter);
 app.use('/api/habits', habitRouter);
 app.use('/api/tasks', taskRouter);
@@ -86,11 +88,7 @@ app.use('/api/achievements', achievementRouter);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/settings', settingsRouter);
 
-if (env.nodeEnv === 'production') {
-  const clientDist = path.resolve(__dirname, '../../client/dist');
-  app.use(express.static(clientDist));
-  app.get('*', (_req, res) => res.sendFile(path.join(clientDist, 'index.html')));
-}
+// 🔥 SURE-SHOT FIX: Purana static files wala if-block yahan se hata diya hai!
 
 app.use(notFound);
 app.use(errorHandler);
