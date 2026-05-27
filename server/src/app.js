@@ -24,18 +24,45 @@ const __dirname = path.dirname(__filename);
 export const app = express();
 
 app.set('trust proxy', 1);
-app.use(helmet({ crossOriginEmbedderPolicy: false }));
+
+// Helmet production configuration to allow Cross-Origin Requests
 app.use(
-  cors({
-    origin: true,
-    credentials: true
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" }
   })
 );
+
+// SURE-SHOT CORS FIX: Explicitly allow your Vercel domains
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://focusflow-app-client-6yzvgzfgu-gurwinder1ms-projects.vercel.app',
+  'https://focusflow-app-client.vercel.app' // 👈 Agar tera koi permanent domain hai toh wo bhi yahan daal de
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1 || env.nodeEnv !== 'production') {
+        return callback(null, true);
+      } else {
+        return callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+  })
+);
+
 app.use(compression());
 app.use(cookieParser());
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan(env.nodeEnv === 'production' ? 'combined' : 'dev'));
+
 app.use(
   '/api',
   rateLimit({
