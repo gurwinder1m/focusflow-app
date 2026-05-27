@@ -94,3 +94,10 @@ export default function Habits() {
     </PageTransition>
   );
 }
+<button onClick={() => deleteHabit(habit._id)}>
+  Delete
+</button>
+const deleteHabit = async (id) => {
+  await axios.delete(`/api/habits/${id}`);
+  setHabits(prev => prev.filter(h => h._id !== id));
+};
