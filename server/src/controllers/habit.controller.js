@@ -1,3 +1,83 @@
+import dayjs from 'dayjs';
+import { z } from 'zod';
+import { AnalyticsSnapshot } from '../models/AnalyticsSnapshot.js';
+import { Habit } from '../models/Habit.js';
+import { ApiError } from '../utils/ApiError.js';
+import { awardXp } from '../services/gamification.service.js';
+
+export const habitSchema = z.object({
+  body: z.object({
+    title: z.string().min(2).max(120),
+    description: z.string().max(500).optional(),
+    icon: z.string().optional(),
+    color: z.string().optional(),
+    frequency: z
+      .enum(['daily', 'weekdays', 'weekends', 'weekly', 'custom'])
+      .optional(),
+    customDays: z.array(z.number().min(0).max(6)).optional(),
+    xpReward: z.number().min(1).max(500).optional()
+  })
+});
+
+export async function listHabits(req, res) {
+  const habits = await Habit.find({
+    user: req.user._id,
+    archived: false
+  }).sort({ createdAt: -1 });
+
+  res.json({ habits });
+}
+
+export async function createHabit(req, res) {
+  const habit = await Habit.create({
+    ...req.body,
+    user: req.user._id
+  });
+
+  res.status(201).json({ habit });
+}
+
+export async function updateHabit(req, res) {
+  const habit = await Habit.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      user: req.user._id
+    },
+    req.body,
+    {
+      new: true,
+      runValidators: true
+    }
+  );
+
+  if (!habit) {
+    throw new ApiError(404, 'Habit not found.');
+  }
+
+  res.json({ habit });
+}
+
+export async function archiveHabit(req, res) {
+  const habit = await Habit.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      user: req.user._id
+    },
+    {
+      archived: true
+    },
+    {
+      new: true
+    }
+  );
+
+  if (!habit) {
+    throw new ApiError(404, 'Habit not found.');
+  }
+
+  res.json({ habit });
+}
+
 export async function completeHabit(req, res) {
   const date = req.body.date || dayjs().format('YYYY-MM-DD');
 
@@ -91,27 +171,6 @@ export async function completeHabit(req, res) {
     habit,
     reward
   });
-}
-
-export async function archiveHabit(req, res) {
-  const habit = await Habit.findOneAndUpdate(
-    {
-      _id: req.params.id,
-      user: req.user._id
-    },
-    {
-      archived: true
-    },
-    {
-      new: true
-    }
-  );
-
-  if (!habit) {
-    throw new ApiError(404, 'Habit not found.');
-  }
-
-  res.json({ habit });
 }
 
 export async function deleteHabit(req, res) {
