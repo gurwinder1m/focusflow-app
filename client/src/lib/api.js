@@ -1,31 +1,31 @@
 import axios from 'axios';
 
+// 🔥 SURE-SHOT FIX: Kisi environment variable par depend mat raho. 
+// Seedha apna asli live backend URL yahan hardcode kar do!
 export const api = axios.create({
-  // 🔥 SURE-SHOT FIX 1: Direct backend URL ka fallback de diya hai yahan
-  baseURL: import.meta.env.VITE_API_URL || 'https://focusflow-backend-21t9.onrender.com/api',
-  
-  // 🔥 SURE-SHOT FIX 2: 'withCredentials: true' ko hata diya kyunki hum LocalStorage + Header use kar rahe hain
+  baseURL: 'https://focusflow-backend-21t9.onrender.com/api'
 });
 
+// Request Interceptor: Token ko har request ke sath bhejna
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('focusflow_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
+}, (error) => {
+  return Promise.reject(error);
 });
 
+// Response Interceptor: Agar sachi mein token expire ho tabhi logout karna
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Agar 401 Unauthorized aaye aur user login page par NA ho, tabhi clear karo
+    if (error.response?.status === 401 && window.location.pathname !== '/auth') {
       localStorage.removeItem('focusflow_token');
       localStorage.removeItem('focusflow_user');
-      
-      // Agar app window reload maarti hai logout par, toh user auto-redirect ho jayega
-      if (window.location.pathname !== '/auth') {
-        window.location.href = '/auth';
-      }
+      window.location.href = '/auth';
     }
     return Promise.reject(error);
   }
