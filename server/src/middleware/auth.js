@@ -1,33 +1,41 @@
 import { verifyToken } from '../utils/jwt.js';
 import { User } from '../models/User.js';
-import { ApiError } from '../utils/ApiError.js';
 
-export async function protect(req, res, next) {
+export async function requireAuth(req, res, next) {
   try {
     let token;
     
+    // Check headers for Bearer token
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }
 
     if (!token) {
-      throw new ApiError(401, 'Not authorized, no token');
+      return res.status(401).json({ message: 'Not authorized, no token provided' });
     }
 
-    // Token verify karo
+    // Verify token safely
     const decoded = verifyToken(token);
     
-    // 🔥 SURE-SHOT: id aur sub dono check karo
+    // Get user id from either id or sub
     const userId = decoded.id || decoded.sub;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Not authorized, invalid token payload' });
+    }
 
     const user = await User.findById(userId);
     if (!user) {
-      throw new ApiError(401, 'User not found');
+      return res.status(401).json({ message: 'Not authorized, user not found' });
     }
 
+    // Attach user to request object
     req.user = user;
     next();
   } catch (error) {
-    res.status(401).json({ message: 'Not authorized, token failed' });
+    return res.status(401).json({ message: 'Not authorized, token verification failed', error: error.message });
   }
 }
+
+// 🔥 BACKUP: Agar kisi file mein 'protect' naam se import kiya ho toh crash na ho
+export { requireAuth as protect };
