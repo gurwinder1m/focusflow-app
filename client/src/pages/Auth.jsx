@@ -1,103 +1,79 @@
-import { createContext, useContext, useState } from 'react';
-// 🔥 FIXED: Teri custom api file ka import (naam check kar lena api.js hai ya axios.js)
-import api from '../lib/axios.js'; 
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 
-const AuthContext = createContext();
+export default function Auth() {
+  const { login, signup, enterDemo, loading } = useAuth();
+  const navigate = useNavigate();
+  const [isLogin, setIsLogin] = useState(true);
+  const [form, setForm] = useState({ email: '', password: '', name: '' });
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  // 🔥 LOGIN
-  const login = async ({ email, password }) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      setLoading(true);
-
-      const res = await api.post('/auth/login', {
-        email,
-        password,
-      });
-
-      console.log("LOGIN RESPONSE:", res.data);
-
-      const token = res.data.token || res.data.data?.token;
-
-      if (!token) {
-        throw new Error("Token not found in response");
+      if (isLogin) {
+        await login({ email: form.email, password: form.password });
+      } else {
+        await signup(form);
       }
-
-      // 💣 🔥 SURE-SHOT FIX: Ab exact 'focusflow_token' naam se hi save hoga!
-      localStorage.setItem("focusflow_token", token);
-      localStorage.setItem("focusflow_user", JSON.stringify(res.data.user || null));
-
-      console.log("TOKEN SAVED:", localStorage.getItem("focusflow_token"));
-
-      setUser(res.data.user || null);
-      setLoading(false);
-
-      return res.data;
-    } catch (error) {
-      setLoading(false);
-      console.log("LOGIN ERROR:", error);
-      throw error;
+      navigate('/');
+    } catch (err) {
+      console.error(err);
     }
-  };
-
-  // 🔥 SIGNUP
-  const signup = async (form) => {
-    try {
-      setLoading(true);
-
-      const res = await api.post('/auth/register', form);
-
-      const token = res.data.token || res.data.data?.token;
-
-      if (token) {
-        // 💣 🔥 SURE-SHOT FIX: Signup mein bhi key name sahi kar diya
-        localStorage.setItem("focusflow_token", token);
-        localStorage.setItem("focusflow_user", JSON.stringify(res.data.user || null));
-      }
-
-      setUser(res.data.user || null);
-      setLoading(false);
-
-      return res.data;
-    } catch (error) {
-      setLoading(false);
-      console.log("SIGNUP ERROR:", error);
-      throw error;
-    }
-  };
-
-  // 🔥 DEMO MODE
-  const enterDemo = () => {
-    const demoToken = "demo-token";
-    localStorage.setItem("focusflow_token", demoToken);
-    setUser({ name: "Demo User" });
-  };
-
-  // 🔥 LOGOUT
-  const logout = () => {
-    // 💣 🔥 SURE-SHOT FIX: Logout par sahi keys remove hongi
-    localStorage.removeItem("focusflow_token");
-    localStorage.removeItem("focusflow_user");
-    setUser(null);
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        login,
-        signup,
-        enterDemo,
-        logout,
-        loading,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
+    <div style={{ display: 'grid', placeItems: 'center', height: '100vh' }}>
+      <div style={{ width: 360, padding: 32, border: '1px solid #ccc', borderRadius: 12 }}>
+        <h2>{isLogin ? 'Login' : 'Sign Up'}</h2>
 
-export const useAuth = () => useContext(AuthContext);
+        <form onSubmit={handleSubmit}>
+          {!isLogin && (
+            <input
+              placeholder="Name"
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
+              style={{ width: '100%', marginBottom: 12, padding: 8 }}
+            />
+          )}
+          <input
+            placeholder="Email"
+            type="email"
+            value={form.email}
+            onChange={e => setForm({ ...form, email: e.target.value })}
+            style={{ width: '100%', marginBottom: 12, padding: 8 }}
+          />
+          <input
+            placeholder="Password"
+            type="password"
+            value={form.password}
+            onChange={e => setForm({ ...form, password: e.target.value })}
+            style={{ width: '100%', marginBottom: 12, padding: 8 }}
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            style={{ width: '100%', padding: 10, marginBottom: 8 }}
+          >
+            {loading ? 'Please wait...' : isLogin ? 'Login' : 'Sign Up'}
+          </button>
+        </form>
+
+        {/* Demo Mode */}
+        <button
+          onClick={() => { enterDemo(); navigate('/'); }}
+          style={{ width: '100%', padding: 10, marginBottom: 8, background: '#f0f0f0' }}
+        >
+          Try Demo
+        </button>
+
+        <p
+          onClick={() => setIsLogin(!isLogin)}
+          style={{ textAlign: 'center', cursor: 'pointer', color: 'blue' }}
+        >
+          {isLogin ? 'Account nahi hai? Sign Up' : 'Login karo'}
+        </p>
+      </div>
+    </div>
+  );
+}

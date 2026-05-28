@@ -36,4 +36,3 @@ export async function requireAuth(req, res, next) {
     return res.status(401).json({ message: 'Not authorized, token verification failed', error: error.message });
   }
 }
-export default Auth; // 🔥 Yeh default export bana dega taaki App.jsx ko sukoon mile
