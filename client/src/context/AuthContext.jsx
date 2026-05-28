@@ -7,7 +7,7 @@ import {
 } from 'react';
 
 import toast from 'react-hot-toast';
-import api from '../lib/axios.js'; // 🔥 SURE-SHOT FIX: Kyunki file lib folder ke andar hai!
+import api from '../lib/axios.js';
 import { demoUser } from '../lib/demoData.js';
 
 const AuthContext = createContext(null);
@@ -24,55 +24,44 @@ export function AuthProvider({ children }) {
 
   const [loading, setLoading] = useState(false);
 
+  // ✅ NEW: Jab tak /auth/me verify na ho, kuch render mat karo
+  const [initializing, setInitializing] = useState(
+    () => !!localStorage.getItem('focusflow_token')
+  );
+
   useEffect(() => {
-    if (!token || token === 'demo-token') return;
+    // Demo token hai toh verify karne ki zaroorat nahi
+    if (!token || token === 'demo-token') {
+      setInitializing(false);
+      return;
+    }
 
     api
       .get('/auth/me')
       .then(({ data }) => {
         setUser(data.user);
-
-        localStorage.setItem(
-          'focusflow_user',
-          JSON.stringify(data.user)
-        );
+        localStorage.setItem('focusflow_user', JSON.stringify(data.user));
       })
       .catch(() => {
         logout();
+      })
+      .finally(() => {
+        setInitializing(false); // ✅ Verification complete
       });
   }, [token]);
 
   async function login(payload) {
     setLoading(true);
-
     try {
-      const { data } = await api.post(
-        '/auth/login',
-        payload
-      );
-
+      const { data } = await api.post('/auth/login', payload);
       setToken(data.token);
       setUser(data.user);
-
-      localStorage.setItem(
-        'focusflow_token',
-        data.token
-      );
-
-      localStorage.setItem(
-        'focusflow_user',
-        JSON.stringify(data.user)
-      );
-
+      localStorage.setItem('focusflow_token', data.token);
+      localStorage.setItem('focusflow_user', JSON.stringify(data.user));
       toast.success('Login successful');
-
       return data;
     } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          'Login failed'
-      );
-
+      toast.error(error.response?.data?.message || 'Login failed');
       throw error;
     } finally {
       setLoading(false);
@@ -81,35 +70,16 @@ export function AuthProvider({ children }) {
 
   async function signup(payload) {
     setLoading(true);
-
     try {
-      const { data } = await api.post(
-        '/auth/register',
-        payload
-      );
-
+      const { data } = await api.post('/auth/register', payload);
       setToken(data.token);
       setUser(data.user);
-
-      localStorage.setItem(
-        'focusflow_token',
-        data.token
-      );
-
-      localStorage.setItem(
-        'focusflow_user',
-        JSON.stringify(data.user)
-      );
-
+      localStorage.setItem('focusflow_token', data.token);
+      localStorage.setItem('focusflow_user', JSON.stringify(data.user));
       toast.success('Signup successful');
-
       return data;
     } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          'Signup failed'
-      );
-
+      toast.error(error.response?.data?.message || 'Signup failed');
       throw error;
     } finally {
       setLoading(false);
@@ -118,23 +88,13 @@ export function AuthProvider({ children }) {
 
   function enterDemo() {
     setToken('demo-token');
-
     setUser(demoUser);
-
-    localStorage.setItem(
-      'focusflow_token',
-      'demo-token'
-    );
-
-    localStorage.setItem(
-      'focusflow_user',
-      JSON.stringify(demoUser)
-    );
+    localStorage.setItem('focusflow_token', 'demo-token');
+    localStorage.setItem('focusflow_user', JSON.stringify(demoUser));
   }
 
   function logout() {
     localStorage.clear();
-
     setToken(null);
     setUser(null);
   }
@@ -145,13 +105,14 @@ export function AuthProvider({ children }) {
       setUser,
       token,
       loading,
+      initializing, // ✅ Export karo
       isDemo: token === 'demo-token',
       login,
       signup,
       logout,
       enterDemo
     }),
-    [user, token, loading]
+    [user, token, loading, initializing]
   );
 
   return (
