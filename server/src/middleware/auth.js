@@ -38,4 +38,4 @@ export async function requireAuth(req, res, next) {
 }
 
 // 🔥 BACKUP: Agar kisi file mein 'protect' naam se import kiya ho toh crash na ho
-export { requireAuth as protect };
+export { requireAuth as protect };export default Auth;
