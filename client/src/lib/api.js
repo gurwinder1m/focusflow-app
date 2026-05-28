@@ -1,14 +1,13 @@
 import axios from 'axios';
 
-// Ek single clean instance poorie app ke liye
-export const api = axios.create({
+// 🔥 FIXED: Isko normal const banaya aur neeche default export kar diya
+const api = axios.create({
   baseURL: 'https://focusflow-backend-21t9.onrender.com/api'
 });
 
-// Request Interceptor: Taaza token uthakar header mein lagana
 api.interceptors.request.use(
   (config) => {
-    // 🔥 SURE-SHOT: Dono keys ka check laga diya taaki agar kahin se bhi save ho, token mil jaye!
+    // SURE-SHOT: Dono mein se koi bhi token ho, utha lo
     const token = localStorage.getItem('focusflow_token') || localStorage.getItem('token');
     
     if (token) {
@@ -21,11 +20,10 @@ api.interceptors.request.use(
   }
 );
 
-// Response Interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Agar sachi mein token invalid ho aur user auth page par na ho, tabhi hatao
+    // Agar login page ke bahar 401 aaye tabhi logout maaro
     if (error.response?.status === 401 && window.location.pathname !== '/auth') {
       localStorage.removeItem('focusflow_token');
       localStorage.removeItem('token');
@@ -35,3 +33,5 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export default api; // 🔥 MASTER FIX: Ab default export hai, poori app mein kahi bhi import api chalega!
