@@ -3,7 +3,7 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import AppShell from './components/layout/AppShell.jsx';
 import ProtectedRoute from './components/layout/ProtectedRoute.jsx';
 import Analytics from './pages/Analytics.jsx';
-import { Auth } from './pages/Auth.jsx'; // 🔥 FIXED: Default ki jagah Named import kar diya!
+import Auth from './pages/Auth.jsx'; // 🔥 FIXED: Curly braces hata diye
 import Dashboard from './pages/Dashboard.jsx';
 import FocusTimer from './pages/FocusTimer.jsx';
 import Goals from './pages/Goals.jsx';

@@ -36,6 +36,4 @@ export async function requireAuth(req, res, next) {
     return res.status(401).json({ message: 'Not authorized, token verification failed', error: error.message });
   }
 }
-
-// 🔥 BACKUP: Agar kisi file mein 'protect' naam se import kiya ho toh crash na ho
-export { requireAuth as protect };export default Auth;
+export default Auth; // 🔥 Yeh default export bana dega taaki App.jsx ko sukoon mile
