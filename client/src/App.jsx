@@ -11,13 +11,30 @@ import Leaderboard from './pages/Leaderboard.jsx';
 import Settings from './pages/Settings.jsx';
 import Tasks from './pages/Tasks.jsx';
 
-// 🔥 FIXED: Agar Auth file sirf context hai, toh humne temporary yahan ek simple saaf login component bana diya taaki page crash na ho
+// 🔥 FIX: Clickable button wala Auth UI component taaki dashboard mein entry mile
 function SimpleAuth() {
+  const handleDemoLogin = () => {
+    // 💣 Sure-shot fix: Token lagao aur main app par bhej do!
+    localStorage.setItem('focusflow_token', 'demo-token');
+    localStorage.setItem('focusflow_user', JSON.stringify({ name: "Demo User" }));
+    window.location.href = '/'; // Refresh karke dashboard load karega
+  };
+
   return (
-    <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', background: '#0f172a', color: 'white', fontFamily: 'sans-serif', flexDirection: 'column' }}>
-      <h2 style={{ marginBottom: '10px' }}>Welcome to FocusFlow</h2>
-      <p style={{ color: '#94a3b8', marginBottom: '20px' }}>Please use the app controls or sign in.</p>
-      {/* Agar tera purana login page kisi aur naam se hai, toh use yahan render kar sakte hain */}
+    <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', background: '#0f172a', color: 'white', fontFamily: 'sans-serif', flexDirection: 'column', padding: '20px', textAlign: 'center' }}>
+      <div style={{ background: '#1e293b', padding: '40px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', maxWidth: '400px', width: '100%' }}>
+        <h2 style={{ marginBottom: '10px', fontSize: '28px', fontWeight: 'bold', color: '#38bdf8' }}>FocusFlow</h2>
+        <p style={{ color: '#94a3b8', marginBottom: '30px', fontSize: '14px' }}>System is ready. Click below to view your Dashboard.</p>
+        
+        <button 
+          onClick={handleDemoLogin}
+          style={{ width: '100%', padding: '12px', background: '#38bdf8', color: '#0f172a', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', transition: 'background 0.2s' }}
+          onMouseOver={(e) => e.target.style.background = '#7dd3fc'}
+          onMouseOut={(e) => e.target.style.background = '#38bdf8'}
+        >
+          Let's Start / Enter Demo Mode 🚀
+        </button>
+      </div>
     </div>
   );
 }
@@ -28,7 +45,6 @@ export default function App() {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        {/* 🔥 FIXED: Jugaad hata kar seedha component de diya */}
         <Route path="/auth" element={<SimpleAuth />} />
         <Route
           path="/"
