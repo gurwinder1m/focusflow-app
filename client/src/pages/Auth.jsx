@@ -1,6 +1,6 @@
 import { createContext, useContext, useState } from 'react';
 // 🔥 FIXED: Teri custom api file ka import (naam check kar lena api.js hai ya axios.js)
-import { api } from '../api/api.js'; 
+import api from '../lib/axios.js'; 
 
 const AuthContext = createContext();
 
