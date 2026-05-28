@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { api } from '../lib/api.js';
+import api from '../lib/axios.js'; // 🔥 FIXED: Sahi file 'axios.js' kar di aur curly braces '{}' hata diye
 import { demoDashboard } from '../lib/demoData.js';
 
 export function useDashboard() {
@@ -14,4 +14,3 @@ export function useDashboard() {
     placeholderData: demoDashboard
   });
 }
-sed -i '' "s|../lib/api.js|../lib/axios.js|g" client/src/hooks/useDashboard.js 2>/dev/null || sed -i "s|../lib/api.js|../lib/axios.js|g" client/src/hooks/useDashboard.js
