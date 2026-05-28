@@ -14,3 +14,4 @@ export function useDashboard() {
     placeholderData: demoDashboard
   });
 }
+sed -i '' "s|../lib/api.js|../lib/axios.js|g" client/src/hooks/useDashboard.js 2>/dev/null || sed -i "s|../lib/api.js|../lib/axios.js|g" client/src/hooks/useDashboard.js
