@@ -1,6 +1,7 @@
 import { Check, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import api from '../lib/axios.js';
+import api from '../utilities/axios.js'; 
+// (Agar habits ka component 'src/components/' ke andar hai, toh exact path check kar lena)
 import toast from 'react-hot-toast';
 
 import Button from '../components/ui/Button.jsx';
