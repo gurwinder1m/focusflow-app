@@ -7,7 +7,7 @@ import {
 } from 'react';
 
 import toast from 'react-hot-toast';
-import api from '../utilities/axios.js'; // 🔥 FIXED: 'api' folder ki jagah 'utilities' kar diya!
+import api from '../lib/axios.js'; // 🔥 SURE-SHOT FIX: Kyunki file lib folder ke andar hai!
 import { demoUser } from '../lib/demoData.js';
 
 const AuthContext = createContext(null);
