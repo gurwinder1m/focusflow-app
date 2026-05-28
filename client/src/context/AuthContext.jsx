@@ -7,7 +7,7 @@ import {
 } from 'react';
 
 import toast from 'react-hot-toast';
-import { api } from '../lib/api.js';
+import api from '../api/axios.js';
 import { demoUser } from '../lib/demoData.js';
 
 const AuthContext = createContext(null);
