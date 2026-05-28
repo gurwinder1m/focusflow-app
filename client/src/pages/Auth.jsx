@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from 'react';
-import api from '../api/axios.js';
+// 🔥 FIXED: Teri custom api file ka import (naam check kar lena api.js hai ya axios.js)
+import { api } from '../api/api.js'; 
 
 const AuthContext = createContext();
 
@@ -7,7 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // 🔥 LOGIN (MAIN FIX HERE)
+  // 🔥 LOGIN
   const login = async ({ email, password }) => {
     try {
       setLoading(true);
@@ -19,19 +20,19 @@ export const AuthProvider = ({ children }) => {
 
       console.log("LOGIN RESPONSE:", res.data);
 
-      // 💣 IMPORTANT FIX (TOKEN SAVE)
       const token = res.data.token || res.data.data?.token;
 
       if (!token) {
         throw new Error("Token not found in response");
       }
 
-      localStorage.setItem("token", token);
+      // 💣 🔥 SURE-SHOT FIX: Ab exact 'focusflow_token' naam se hi save hoga!
+      localStorage.setItem("focusflow_token", token);
+      localStorage.setItem("focusflow_user", JSON.stringify(res.data.user || null));
 
-      console.log("TOKEN SAVED:", localStorage.getItem("token"));
+      console.log("TOKEN SAVED:", localStorage.getItem("focusflow_token"));
 
       setUser(res.data.user || null);
-
       setLoading(false);
 
       return res.data;
@@ -52,11 +53,12 @@ export const AuthProvider = ({ children }) => {
       const token = res.data.token || res.data.data?.token;
 
       if (token) {
-        localStorage.setItem("token", token);
+        // 💣 🔥 SURE-SHOT FIX: Signup mein bhi key name sahi kar diya
+        localStorage.setItem("focusflow_token", token);
+        localStorage.setItem("focusflow_user", JSON.stringify(res.data.user || null));
       }
 
       setUser(res.data.user || null);
-
       setLoading(false);
 
       return res.data;
@@ -70,13 +72,15 @@ export const AuthProvider = ({ children }) => {
   // 🔥 DEMO MODE
   const enterDemo = () => {
     const demoToken = "demo-token";
-    localStorage.setItem("token", demoToken);
+    localStorage.setItem("focusflow_token", demoToken);
     setUser({ name: "Demo User" });
   };
 
   // 🔥 LOGOUT
   const logout = () => {
-    localStorage.removeItem("token");
+    // 💣 🔥 SURE-SHOT FIX: Logout par sahi keys remove hongi
+    localStorage.removeItem("focusflow_token");
+    localStorage.removeItem("focusflow_user");
     setUser(null);
   };
 
